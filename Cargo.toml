@@ -1,0 +1,11 @@
+[package]
+name = "tileable-volume-noise"
+version = "0.1.0"
+authors = ["Traverse Research <support@traverseresearch.nl>"]
+edition = "2021"
+license = "LicenseRef-Traverse-Proprietary"
+homepage = "https://traverseresearch.nl"
+
+[dependencies]
+glam = "0.22"
+image = "0.24"
