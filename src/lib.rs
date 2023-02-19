@@ -97,7 +97,7 @@ impl Tileable3dNoise {
     }
 
     fn glm_mod_289(x: Vec4) -> Vec4 {
-        x - x * Vec4::splat(1.0 / 289.0).floor() * Vec4::splat(289.0)
+        x - (x * Vec4::splat(1.0 / 289.0)).floor() * Vec4::splat(289.0)
     }
 
     fn glm_permute(x: Vec4) -> Vec4 {
@@ -162,7 +162,6 @@ impl Tileable3dNoise {
         gx01 = gx01.fract() - Vec4::splat(0.5);
         gy01 = gy01.fract() - Vec4::splat(0.5);
         gz01 = gz01.fract() - Vec4::splat(0.5);
-
         let gw01 = Vec4::splat(0.75) - gx01.abs() - gy01.abs() - gz01.abs();
         let sw01 = Self::glm_step(gw01, Vec4::ZERO);
         gx01 -= sw01 * (Self::glm_step(Vec4::ZERO, gx01) - Vec4::splat(0.5));
