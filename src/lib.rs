@@ -3,7 +3,7 @@ use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use tileable_3d_noise::Tileable3dNoise;
 
 mod glm_functions;
-mod tileable_3d_noise;
+pub mod tileable_3d_noise;
 
 pub struct TileableCloudNoise {
     pub data: Vec<u8>,
