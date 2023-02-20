@@ -1,7 +1,5 @@
-use glam::{Vec3, Vec4};
-use image as _;
-
 use crate::glm_functions::{glm_mod_3, glm_perlin_vec4, lerp};
+use glam::{Vec3, Vec4};
 
 pub struct Tileable3dNoise;
 impl Tileable3dNoise {

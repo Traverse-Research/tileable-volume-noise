@@ -1,3 +1,6 @@
+#[cfg(feature = "images")]
+use std::{fs, path::Path, sync::Arc};
+
 use glam::Vec3;
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
@@ -13,8 +16,25 @@ pub struct TileableCloudNoise {
     pub bytes_per_channel: u32,
 }
 
-// TODO: Add feature "image" that saves the textures to a folder for correctness checks.
+#[cfg(feature = "images")]
+fn write_to_png(noise_texture: &TileableCloudNoise, filename_without_extension: &str) {
+    // Create the output directory, if it doesn't already exist
+    let target_dir = Path::new("./example_images/");
+    if !target_dir.exists() {
+        fs::create_dir(target_dir).expect("failed to create `example_images` directory");
+    }
 
+    let file_path = target_dir.join(format!("{}.png", filename_without_extension));
+    let _ = image::save_buffer(
+        file_path,
+        &noise_texture.data,
+        noise_texture.resolution * noise_texture.resolution,
+        noise_texture.resolution,
+        image::ColorType::Rgba8,
+    );
+}
+
+#[allow(clippy::let_and_return)]
 impl TileableCloudNoise {
     fn remap(og_value: f32, og_min: f32, og_max: f32, new_min: f32, new_max: f32) -> f32 {
         new_min + (((og_value - og_min) / (og_max - og_min)) * (new_max - new_min))
@@ -121,12 +141,17 @@ impl TileableCloudNoise {
             })
             .collect::<Vec<_>>();
 
-        Self {
+        let output = Self {
             data: cloud_base_shape_texels_unpadded,
             resolution,
             num_channels,
             bytes_per_channel,
-        }
+        };
+
+        #[cfg(feature = "images")]
+        write_to_png(&output, "cloudShapeAndErosion");
+
+        output
     }
 
     // RGBA8 Unorm
@@ -196,11 +221,16 @@ impl TileableCloudNoise {
             })
             .collect::<Vec<_>>();
 
-        Self {
+        let output = Self {
             data: cloud_detail_texels_unpadded,
             resolution,
             num_channels,
             bytes_per_channel,
-        }
+        };
+
+        #[cfg(feature = "images")]
+        write_to_png(&output, "cloudDetails");
+
+        output
     }
 }
