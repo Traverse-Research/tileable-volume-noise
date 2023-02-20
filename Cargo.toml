@@ -9,3 +9,7 @@ homepage = "https://traverseresearch.nl"
 [dependencies]
 glam = "0.22"
 image = "0.24"
+
+#TODO: Should design the crate functions in such a way that they can be safely called 
+#      from a parallel for instead of enforcing rayon on the end user.
+rayon = "1.5"
