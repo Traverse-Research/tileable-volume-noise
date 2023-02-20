@@ -1,9 +1,10 @@
 use glam::Vec3;
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
-use tileable_3d_noise::Tileable3dNoise;
 
 mod glm_functions;
-pub mod tileable_3d_noise;
+mod tileable_3d_noise;
+
+pub use tileable_3d_noise::Tileable3dNoise;
 
 pub struct TileableCloudNoise {
     pub data: Vec<u8>,
