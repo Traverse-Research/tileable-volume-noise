@@ -160,11 +160,9 @@ impl TileableCloudNoise {
     // G: Worley FBM 1
     // B: Worley FBM 2
     // A: Unused - Set to 255
-    pub fn details_texture() -> Self {
+    pub fn details_texture(resolution: u32) -> Self {
         // Detail texture behing different frequency of Worley noise
         // Note: all channels could be combined once here to reduce memory bandwith requirements.
-
-        let resolution = 32u32;
         let num_channels = 4u32;
         let bytes_per_channel = 1u32;
 
