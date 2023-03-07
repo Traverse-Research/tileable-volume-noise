@@ -7,10 +7,10 @@ license = "LicenseRef-Traverse-Proprietary"
 homepage = "https://traverseresearch.nl"
 
 [dependencies]
-glam = "0.22"
+glam = ">=0.21, <=0.23"
 image = { version = "0.24", optional = true }
 
-#TODO: Should design the crate functions in such a way that they can be safely called 
+#TODO: Should design the crate functions in such a way that they can be safely called
 #      from a parallel for instead of enforcing rayon on the end user.
 rayon = "1.5"
 
