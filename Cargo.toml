@@ -3,8 +3,11 @@ name = "tileable-volume-noise"
 version = "0.1.0"
 authors = ["Traverse Research <support@traverseresearch.nl>"]
 edition = "2021"
-license = "LicenseRef-Traverse-Proprietary"
+license = "MIT"
 homepage = "https://traverseresearch.nl"
+repository = "https://github.com/Traverse-Research/tileable-volume-noise"
+description = "Rust implementation of https://github.com/sebh/TileableVolumeNoise"
+include = ["src", "LICENSE", "CONTRIBUTING.md"]
 
 [dependencies]
 glam = ">=0.21, <=0.23"
