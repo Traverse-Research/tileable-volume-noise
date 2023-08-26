@@ -17,5 +17,5 @@ Add this to your Cargo.toml:
 
 ```toml
 [dependencies]
-tileable-volume-noise = "0.2.0"
+tileable-volume-noise = "0.3.0"
 ```
