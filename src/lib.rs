@@ -94,11 +94,20 @@ impl TileableCloudNoise {
                         // However, it is not clear the text and the image are matching: images does not seem to match what the result from the description in text would give.
                         // Also there are a lot of fudge factor in the code, e.g. * 0.2, so it is really up to you to fine the formula you like.
 
-                        // mapping perlin noise in between worley as minimum and 1.0 as maximum (as described in text of p.101 of GPU Pro 7)
-                        let perlin_worley = Self::remap(perlin_noise, 0.0, 1.0, worley_fbm, 1.0);
+                        // Comment from SebH original code:
+                        // "mapping perlin noise in between worley as minimum and 1.0 as maximum (as described in text of p.101 of GPU Pro 7)"
+                        // let perlin_worley = Self::remap(perlin_noise, 0.0, 1.0, worley_fbm, 1.0);
 
-                        // Matches better what figure 4.7 (not the following up text description p.101). Maps worley between newMin as 0 and perlin as maximum.
-                        // let perlin_worley = Self::remap(worleyFBM, 0.0, 1.0, 0.0, perlinNoise);
+                        // Emilio:
+                        // From Page 101 of GPU Pro 7:
+                        //  "We do this by remapping the Perlin noise using the Worley noise FBM as the minimum value from the original range."
+                        // let perlin_worley = Self::remap(perlin_noise, worley_fbm, 1.0, 0.0, 1.0);
+                        // But this creates quite broken textures...
+
+                        // In "Authoring Realtime Volumetric Cloudscapes with the Decima Engine", one of the slides shows:
+                        let perlin_worley =
+                            Self::remap(perlin_noise, 1.0 - worley_fbm, 1.0, 0.0, 1.0);
+                        // ☝️ this is giving the most promising results so far, so we're enabling this by default
 
                         let cell_count = 4f32;
                         // let worley_noise_0 =
