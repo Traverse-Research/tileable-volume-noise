@@ -237,13 +237,13 @@ impl TileableCloudNoise {
 
     // RGBA8 Unorm
     //
-    // RG: curl.xy packed as `c * 0.5 + 0.5` (unpack with `c * 2.0 - 1.0`)
-    // B: Unused - Set to 128 (i.e. 0 once unpacked)
-    // A: Unused - Set to 255
-    //
-    // The 2D vector field is the curl of an FBM Perlin scalar potential, and is
-    // therefore divergence-free and tileable on the unit square. Used to perturb
-    // cloud sample positions in the horizontal plane (per Schneider's Nubis).
+    // RG: curl.xy of an FBM Perlin potential, packed as `c * 0.5 + 0.5`.
+    //     Divergence-free 2D vector field, used to perturb the horizontal
+    //     sample position in the cloud detail lookup (per Schneider's Nubis
+    //     followup: only `.rg` of the texture is sampled, applied to `p.xy`
+    //     with a height-fade).
+    // B:  Unused — set to 128 (i.e. 0 once unpacked).
+    // A:  Unused — set to 255.
     pub fn curl_noise_texture() -> Self {
         let resolution = 128u32;
         let num_channels = 4u32;
@@ -255,8 +255,8 @@ impl TileableCloudNoise {
         let norm_factor = 1.0 / resolution as f32;
 
         // First pass: evaluate the raw curl field. Magnitude depends on
-        // `frequency` and the central-difference epsilon, so we normalize
-        // by the per-texture max absolute component before packing.
+        // `frequency` and the central-difference epsilon, so we normalize the
+        // RG pair by the per-texture max absolute component before packing.
         let raw: Vec<Vec2> = (0..resolution)
             .into_par_iter()
             .flat_map(|t| {
