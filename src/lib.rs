@@ -1,12 +1,14 @@
 #[cfg(feature = "images")]
-use std::{fs, path::Path, sync::Arc};
+use std::{fs, path::Path};
 
-use glam::Vec3;
+use glam::{Vec2, Vec3};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 mod glm_functions;
+mod tileable_2d_noise;
 mod tileable_3d_noise;
 
+pub use tileable_2d_noise::Tileable2dNoise;
 pub use tileable_3d_noise::Tileable3dNoise;
 
 pub struct TileableCloudNoise {
@@ -25,11 +27,17 @@ fn write_to_png(noise_texture: &TileableCloudNoise, filename_without_extension: 
     }
 
     let file_path = target_dir.join(format!("{}.png", filename_without_extension));
+    // 3D textures are laid out as a strip of Z-slices (width = res * res),
+    // while 2D textures are width = res. Derive the layout from the buffer size.
+    let bytes_per_pixel = noise_texture.num_channels * noise_texture.bytes_per_channel;
+    let total_pixels = noise_texture.data.len() as u32 / bytes_per_pixel;
+    let height = noise_texture.resolution;
+    let width = total_pixels / height;
     let _ = image::save_buffer(
         file_path,
         &noise_texture.data,
-        noise_texture.resolution * noise_texture.resolution,
-        noise_texture.resolution,
+        width,
+        height,
         image::ColorType::Rgba8,
     );
 }
@@ -223,6 +231,72 @@ impl TileableCloudNoise {
 
         #[cfg(feature = "images")]
         write_to_png(&output, "cloudDetails");
+
+        output
+    }
+
+    // RGBA8 Unorm
+    //
+    // RG: curl.xy packed as `c * 0.5 + 0.5` (unpack with `c * 2.0 - 1.0`)
+    // B: Unused - Set to 128 (i.e. 0 once unpacked)
+    // A: Unused - Set to 255
+    //
+    // The 2D vector field is the curl of an FBM Perlin scalar potential, and is
+    // therefore divergence-free and tileable on the unit square. Used to perturb
+    // cloud sample positions in the horizontal plane (per Schneider's Nubis).
+    pub fn curl_noise_texture() -> Self {
+        let resolution = 128u32;
+        let num_channels = 4u32;
+        let bytes_per_channel = 1u32;
+
+        let frequency = 4.0f32;
+        let octave_count = 3u32;
+
+        let norm_factor = 1.0 / resolution as f32;
+
+        // First pass: evaluate the raw curl field. Magnitude depends on
+        // `frequency` and the central-difference epsilon, so we normalize
+        // by the per-texture max absolute component before packing.
+        let raw: Vec<Vec2> = (0..resolution)
+            .into_par_iter()
+            .flat_map(|t| {
+                (0..resolution)
+                    .map(move |s| {
+                        let coords = Vec2::new(s as f32, t as f32) * norm_factor;
+                        Tileable2dNoise::curl_noise(coords, frequency, octave_count)
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .collect();
+
+        let max_abs = raw
+            .iter()
+            .map(|v| v.x.abs().max(v.y.abs()))
+            .fold(0.0f32, f32::max)
+            .max(f32::EPSILON);
+        let inv_max_abs = 1.0 / max_abs;
+
+        let mut data: Vec<u8> = Vec::with_capacity(
+            (resolution * resolution * num_channels * bytes_per_channel) as usize,
+        );
+        for v in &raw {
+            let nx = (v.x * inv_max_abs * 0.5 + 0.5).clamp(0.0, 1.0);
+            let ny = (v.y * inv_max_abs * 0.5 + 0.5).clamp(0.0, 1.0);
+            data.push((nx * 255.0) as u8);
+            data.push((ny * 255.0) as u8);
+            data.push(128u8);
+            data.push(255u8);
+        }
+
+        let output = Self {
+            data,
+            resolution,
+            num_channels,
+            bytes_per_channel,
+        };
+
+        #[cfg(feature = "images")]
+        write_to_png(&output, "curlNoise");
 
         output
     }
